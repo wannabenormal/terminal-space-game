@@ -7,11 +7,11 @@ from itertools import cycle
 from curses_tools import draw_frame, read_controls, get_frame_size
 
 
-async def blink(canvas, row, column, symbol='*'):
+async def blink(canvas, row, column, offset_tics=5, symbol='*'):
     while True:
         canvas.addstr(row, column, symbol, curses.A_DIM)
 
-        for _ in range(random.randint(0, 10)):
+        for _ in range(offset_tics):
             await asyncio.sleep(0)
 
         for _ in range(20):
@@ -123,7 +123,11 @@ def draw(canvas):
     ]
 
     coroutines = [
-        blink(canvas, row, column, symbol=random.choice(stars_symbols))
+        blink(
+            canvas, row, column,
+            offset_tics=random.randint(0, 10),
+            symbol=random.choice(stars_symbols)
+        )
         for row, column in list(set(stars_coordinates))
     ]
 
