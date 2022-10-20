@@ -62,7 +62,7 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
         column += columns_speed
 
 
-async def spaceship(canvas, start_row, start_col, frames):
+async def render_spaceship(canvas, start_row, start_col, frames):
     previous_frame = None
     previous_row = None
     previous_col = None
@@ -136,7 +136,7 @@ def draw(canvas):
     )
 
     coroutines.append(
-        spaceship(canvas, int(max_row / 2), int(max_col / 2), rocket_frames)
+        render_spaceship(canvas, int(max_row / 2), int(max_col / 2), rocket_frames)
     )
 
     while True:
