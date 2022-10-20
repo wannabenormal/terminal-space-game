@@ -83,7 +83,6 @@ async def render_spaceship(canvas, start_row, start_col, frames):
             col = next_col
 
         draw_frame(canvas, row, col, frame)
-        canvas.refresh()
         await asyncio.sleep(0)
 
         draw_frame(canvas, row, col, frame, negative=True)
@@ -92,6 +91,7 @@ async def render_spaceship(canvas, start_row, start_col, frames):
 def draw(canvas):
     tic_timeout = 0.1
     stars_count = 100
+    border_width = 1
 
     rocket_frames_paths = [
         'frames/rocket_frame_1.txt',
@@ -109,11 +109,14 @@ def draw(canvas):
     canvas_h, canvas_w = canvas.getmaxyx()
     stars_symbols = '*+:'
 
+    max_row = canvas_h - border_width - 1
+    max_col = canvas_w - border_width - 1
+
     curses.curs_set(False)
     canvas.nodelay(True)
 
     stars_coordinates = [
-        (random.randint(1, canvas_h - 2), random.randint(1, canvas_w - 2))
+        (random.randint(1, max_row), random.randint(1, max_col))
         for _ in range(stars_count)
     ]
 
@@ -140,7 +143,7 @@ def draw(canvas):
                 coroutine.send(None)
             except StopIteration:
                 coroutines.remove(coroutine)
-
+        canvas.refresh()
         canvas.border()
         time.sleep(tic_timeout)
 
