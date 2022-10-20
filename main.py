@@ -90,10 +90,10 @@ async def render_spaceship(canvas, start_row, start_col, frames):
 
 
 def draw(canvas):
-    TIC_TIMEOUT = 0.1
-    STARS_COUNT = 100
+    tic_timeout = 0.1
+    stars_count = 100
 
-    ROCKET_FRAMES_PATHS = [
+    rocket_frames_paths = [
         'frames/rocket_frame_1.txt',
         'frames/rocket_frame_1.txt',
         'frames/rocket_frame_2.txt',
@@ -102,19 +102,19 @@ def draw(canvas):
 
     rocket_frames = []
 
-    for rocket_frame_path in ROCKET_FRAMES_PATHS:
+    for rocket_frame_path in rocket_frames_paths:
         with open(rocket_frame_path, 'r') as file:
             rocket_frames.append(file.read())
 
-    max_row, max_col = canvas.getmaxyx()
+    canvas_h, canvas_w = canvas.getmaxyx()
     stars_symbols = '*+:'
 
     curses.curs_set(False)
     canvas.nodelay(True)
 
     stars_coordinates = [
-        (random.randint(1, max_row - 2), random.randint(1, max_col - 2))
-        for _ in range(STARS_COUNT)
+        (random.randint(1, canvas_h - 2), random.randint(1, canvas_w - 2))
+        for _ in range(stars_count)
     ]
 
     coroutines = [
@@ -127,11 +127,11 @@ def draw(canvas):
     ]
 
     coroutines.append(
-        fire(canvas, int(max_row / 2), int(max_col / 2))
+        fire(canvas, int(canvas_h / 2), int(canvas_w / 2))
     )
 
     coroutines.append(
-        render_spaceship(canvas, int(max_row / 2), int(max_col / 2), rocket_frames)
+        render_spaceship(canvas, int(canvas_h / 2), int(canvas_w / 2), rocket_frames)
     )
 
     while True:
@@ -142,7 +142,7 @@ def draw(canvas):
                 coroutines.remove(coroutine)
 
         canvas.border()
-        time.sleep(TIC_TIMEOUT)
+        time.sleep(tic_timeout)
 
 
 if __name__ == '__main__':
