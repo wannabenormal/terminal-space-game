@@ -63,9 +63,6 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
 
 
 async def render_spaceship(canvas, start_row, start_col, frames):
-    previous_frame = None
-    previous_row = None
-    previous_col = None
     canvas_h, canvas_w = canvas.getmaxyx()
 
     frame_h, frame_w = get_frame_size(frames[0])
@@ -74,26 +71,22 @@ async def render_spaceship(canvas, start_row, start_col, frames):
     col = start_col - int(frame_w / 2)
 
     for frame in cycle(frames):
-        previous_row = row
-        previous_col = col
-
         row_direction, column_direction, _ = read_controls(canvas)
 
-        if row + row_direction > 0 and row + row_direction < canvas_h - frame_h:
-            row = row + row_direction
+        next_row = row + row_direction
+        next_col = col + column_direction
 
-        if col + column_direction > 0 and col + column_direction < canvas_w - frame_w:
-            col = col + column_direction
+        if next_row > 0 and next_row < canvas_h - frame_h:
+            row = next_row
 
-        if previous_frame:
-            draw_frame(canvas, previous_row, previous_col, previous_frame, negative=True)
+        if next_col > 0 and next_col < canvas_w - frame_w:
+            col = next_col
 
         draw_frame(canvas, row, col, frame)
-        previous_frame = frame
         canvas.refresh()
+        await asyncio.sleep(0)
 
-        await asyncio.sleep(0)
-        await asyncio.sleep(0)
+        draw_frame(canvas, row, col, frame, negative=True)
 
 
 def draw(canvas):
@@ -102,6 +95,8 @@ def draw(canvas):
 
     ROCKET_FRAMES_PATHS = [
         'frames/rocket_frame_1.txt',
+        'frames/rocket_frame_1.txt',
+        'frames/rocket_frame_2.txt',
         'frames/rocket_frame_2.txt',
     ]
 
@@ -112,7 +107,7 @@ def draw(canvas):
             rocket_frames.append(file.read())
 
     max_row, max_col = canvas.getmaxyx()
-    stars_symbols = ['*', '+', ':']
+    stars_symbols = '*+:'
 
     curses.curs_set(False)
     canvas.nodelay(True)
@@ -145,10 +140,7 @@ def draw(canvas):
                 coroutine.send(None)
             except StopIteration:
                 coroutines.remove(coroutine)
-        if len(coroutines) == 0:
-            break
 
-        canvas.refresh()
         canvas.border()
         time.sleep(TIC_TIMEOUT)
 
