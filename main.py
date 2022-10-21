@@ -138,11 +138,8 @@ def draw(canvas):
     )
 
     while True:
-        for coroutine in coroutines.copy():
-            try:
-                coroutine.send(None)
-            except StopIteration:
-                coroutines.remove(coroutine)
+        for coroutine in coroutines:
+            coroutine.send()
         canvas.refresh()
         canvas.border()
         time.sleep(tic_timeout)
