@@ -62,7 +62,8 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
         column += columns_speed
 
 
-async def render_spaceship(canvas, start_row, start_col, frames):
+async def render_spaceship(canvas, start_row, start_col, frames, speed=1):
+    border_width = 1
     canvas_h, canvas_w = canvas.getmaxyx()
 
     frame_h, frame_w = get_frame_size(frames[0])
@@ -73,14 +74,17 @@ async def render_spaceship(canvas, start_row, start_col, frames):
     for frame in cycle(frames):
         row_direction, column_direction, _ = read_controls(canvas)
 
-        next_row = row + row_direction
-        next_col = col + column_direction
+        next_row = row + row_direction * speed
+        next_col = col + column_direction * speed
 
-        if next_row > 0 and next_row < canvas_h - frame_h:
-            row = next_row
+        next_row = min(next_row, canvas_h - frame_h - border_width)
+        next_col = min(next_col, canvas_w - frame_w - border_width)
 
-        if next_col > 0 and next_col < canvas_w - frame_w:
-            col = next_col
+        next_row = max(next_row, border_width)
+        next_col = max(next_col, border_width)
+
+        row = next_row
+        col = next_col
 
         draw_frame(canvas, row, col, frame)
         await asyncio.sleep(0)
