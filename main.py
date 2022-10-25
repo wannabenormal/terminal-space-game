@@ -96,25 +96,26 @@ def draw(canvas):
     tic_timeout = 0.1
     stars_count = 100
     border_width = 1
+    canvas_coord_offset = 1
 
     rocket_frames_paths = [
         'frames/rocket_frame_1.txt',
-        'frames/rocket_frame_1.txt',
-        'frames/rocket_frame_2.txt',
-        'frames/rocket_frame_2.txt',
+        'frames/rocket_frame_2.txt'
     ]
 
     rocket_frames = []
 
     for rocket_frame_path in rocket_frames_paths:
         with open(rocket_frame_path, 'r') as file:
-            rocket_frames.append(file.read())
+            frame = file.read()
+            rocket_frames.append(frame)
+            rocket_frames.append(frame)
 
     canvas_h, canvas_w = canvas.getmaxyx()
     stars_symbols = '*+:'
 
-    max_row = canvas_h - border_width - 1
-    max_col = canvas_w - border_width - 1
+    max_row = canvas_h - border_width - canvas_coord_offset
+    max_col = canvas_w - border_width - canvas_coord_offset
 
     curses.curs_set(False)
     canvas.nodelay(True)
