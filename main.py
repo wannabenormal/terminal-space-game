@@ -74,17 +74,14 @@ async def render_spaceship(canvas, start_row, start_col, frames, speed=1):
     for frame in cycle(frames):
         row_direction, column_direction, _ = read_controls(canvas)
 
-        next_row = row + row_direction * speed
-        next_col = col + column_direction * speed
+        row = row + row_direction * speed
+        col = col + column_direction * speed
 
-        next_row = min(next_row, canvas_h - frame_h - border_width)
-        next_col = min(next_col, canvas_w - frame_w - border_width)
+        row = min(row, canvas_h - frame_h - border_width)
+        col = min(col, canvas_w - frame_w - border_width)
 
-        next_row = max(next_row, border_width)
-        next_col = max(next_col, border_width)
-
-        row = next_row
-        col = next_col
+        row = max(row, border_width)
+        col = max(col, border_width)
 
         draw_frame(canvas, row, col, frame)
         await asyncio.sleep(0)
@@ -108,8 +105,7 @@ def draw(canvas):
     for rocket_frame_path in rocket_frames_paths:
         with open(rocket_frame_path, 'r') as file:
             frame = file.read()
-            rocket_frames.append(frame)
-            rocket_frames.append(frame)
+            rocket_frames.extend([frame, frame])
 
     canvas_h, canvas_w = canvas.getmaxyx()
     stars_symbols = '*+:'
