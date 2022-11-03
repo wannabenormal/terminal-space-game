@@ -89,23 +89,63 @@ async def render_spaceship(canvas, start_row, start_col, frames, speed=1):
         draw_frame(canvas, row, col, frame, negative=True)
 
 
+async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
+    """Animate garbage, flying from top to bottom. Сolumn position will stay same, as specified on start."""
+    rows_number, columns_number = canvas.getmaxyx()
+
+    column = max(column, 0)
+    column = min(column, columns_number - 1)
+
+    row = 0
+
+    while row < rows_number:
+        draw_frame(canvas, row, column, garbage_frame)
+        await asyncio.sleep(0)
+        draw_frame(canvas, row, column, garbage_frame, negative=True)
+        row += speed
+
+
+async def fill_orbit_with_garbage(canvas, garbage_frames):
+    _, columns_number = canvas.getmaxyx()
+
+    while True:
+        column = random.randint(0, columns_number)
+        column = min(column, columns_number - border_width - canvas_coord_offset)
+        column = max(column, border_width)
+        coroutines.append(fly_garbage(canvas, column, random.choice(garbage_frames)))
+        for _ in range(10):
+            await asyncio.sleep(0)
+
+
 def draw(canvas):
     tic_timeout = 0.1
     stars_count = 100
-    border_width = 1
-    canvas_coord_offset = 1
 
     rocket_frames_paths = [
         'frames/rocket_frame_1.txt',
         'frames/rocket_frame_2.txt'
     ]
 
+    garbage_frames_paths = [
+        'frames/garbage/duck.txt',
+        'frames/garbage/hubble.txt',
+        'frames/garbage/lamp.txt',
+        'frames/garbage/trash_large.txt',
+        'frames/garbage/trash_small.txt',
+        'frames/garbage/trash_xl.txt'
+    ]
+
     rocket_frames = []
+    garbage_frames = []
 
     for rocket_frame_path in rocket_frames_paths:
         with open(rocket_frame_path, 'r') as file:
             frame = file.read()
             rocket_frames.extend([frame, frame])
+
+    for garbage_frame_path in garbage_frames_paths:
+        with open(garbage_frame_path, 'r') as file:
+            garbage_frames.append(file.read())
 
     canvas_h, canvas_w = canvas.getmaxyx()
     stars_symbols = '*+:'
@@ -121,14 +161,14 @@ def draw(canvas):
         for _ in range(stars_count)
     ]
 
-    coroutines = [
+    coroutines.extend([
         blink(
             canvas, row, column,
             offset_tics=random.randint(0, 10),
             symbol=random.choice(stars_symbols)
         )
         for row, column in list(set(stars_coordinates))
-    ]
+    ])
 
     coroutines.append(
         fire(canvas, int(canvas_h / 2), int(canvas_w / 2))
@@ -136,6 +176,10 @@ def draw(canvas):
 
     coroutines.append(
         render_spaceship(canvas, int(canvas_h / 2), int(canvas_w / 2), rocket_frames)
+    )
+
+    coroutines.append(
+        fill_orbit_with_garbage(canvas, garbage_frames)
     )
 
     while True:
@@ -150,5 +194,9 @@ def draw(canvas):
 
 
 if __name__ == '__main__':
+    coroutines = []
+    border_width = 1
+    canvas_coord_offset = 1
+
     curses.update_lines_cols()
     curses.wrapper(draw)
