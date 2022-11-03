@@ -75,7 +75,7 @@ async def render_spaceship(canvas, start_row, start_col, frames, max_speed=1):
     row_speed = column_speed = 0
 
     for frame in cycle(frames):
-        row_direction, column_direction, _ = read_controls(canvas)
+        row_direction, column_direction, space_pressed = read_controls(canvas)
 
         row_speed, column_speed = update_speed(
             row_speed,
@@ -94,6 +94,9 @@ async def render_spaceship(canvas, start_row, start_col, frames, max_speed=1):
 
         row = max(row, border_width)
         col = max(col, border_width)
+
+        if space_pressed:
+            coroutines.append(fire(canvas, row, col + int(frame_w / 2)))
 
         draw_frame(canvas, row, col, frame)
         await sleep()
@@ -180,10 +183,6 @@ def draw(canvas):
         )
         for row, column in list(set(stars_coordinates))
     ])
-
-    coroutines.append(
-        fire(canvas, int(canvas_h / 2), int(canvas_w / 2))
-    )
 
     coroutines.append(
         render_spaceship(canvas, int(canvas_h / 2), int(canvas_w / 2), rocket_frames)
