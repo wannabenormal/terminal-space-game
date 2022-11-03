@@ -7,29 +7,29 @@ from itertools import cycle
 from curses_tools import draw_frame, read_controls, get_frame_size
 
 
+async def sleep(tics=1):
+    for _ in range(tics):
+        await asyncio.sleep(0)
+
+
 async def blink(canvas, row, column, offset_tics=5, symbol='*'):
     while True:
         canvas.addstr(row, column, symbol, curses.A_DIM)
 
-        for _ in range(offset_tics):
-            await asyncio.sleep(0)
+        await sleep(offset_tics)
 
-        for _ in range(20):
-            await asyncio.sleep(0)
+        await sleep(20)
 
         canvas.addstr(row, column, symbol)
 
-        for _ in range(3):
-            await asyncio.sleep(0)
+        await sleep(3)
 
         canvas.addstr(row, column, symbol, curses.A_BOLD)
 
-        for _ in range(5):
-            await asyncio.sleep(0)
+        await sleep(5)
 
         canvas.addstr(row, column, symbol)
-        for _ in range(3):
-            await asyncio.sleep(0)
+        await sleep(3)
 
 
 async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
@@ -38,10 +38,10 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
     row, column = start_row, start_column
 
     canvas.addstr(round(row), round(column), '*')
-    await asyncio.sleep(0)
+    await sleep()
 
     canvas.addstr(round(row), round(column), 'O')
-    await asyncio.sleep(0)
+    await sleep()
     canvas.addstr(round(row), round(column), ' ')
 
     row += rows_speed
@@ -56,7 +56,7 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
 
     while 0 < row < max_row and 0 < column < max_column:
         canvas.addstr(round(row), round(column), symbol)
-        await asyncio.sleep(0)
+        await sleep()
         canvas.addstr(round(row), round(column), ' ')
         row += rows_speed
         column += columns_speed
@@ -84,7 +84,7 @@ async def render_spaceship(canvas, start_row, start_col, frames, speed=1):
         col = max(col, border_width)
 
         draw_frame(canvas, row, col, frame)
-        await asyncio.sleep(0)
+        await sleep()
 
         draw_frame(canvas, row, col, frame, negative=True)
 
@@ -100,7 +100,7 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
 
     while row < rows_number:
         draw_frame(canvas, row, column, garbage_frame)
-        await asyncio.sleep(0)
+        await sleep()
         draw_frame(canvas, row, column, garbage_frame, negative=True)
         row += speed
 
@@ -113,8 +113,7 @@ async def fill_orbit_with_garbage(canvas, garbage_frames):
         column = min(column, columns_number - border_width - canvas_coord_offset)
         column = max(column, border_width)
         coroutines.append(fly_garbage(canvas, column, random.choice(garbage_frames)))
-        for _ in range(10):
-            await asyncio.sleep(0)
+        await sleep(10)
 
 
 def draw(canvas):
