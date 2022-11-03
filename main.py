@@ -6,7 +6,7 @@ from itertools import cycle
 
 from curses_tools import draw_frame, read_controls, get_frame_size
 from physics import update_speed
-from obstacles import Obstacle, show_obstacles
+from obstacles import Obstacle
 from explosions import explode
 
 
@@ -71,7 +71,6 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
 
 
 async def render_spaceship(canvas, start_row, start_col, frames, max_speed=1):
-    border_width = 1
     canvas_h, canvas_w = canvas.getmaxyx()
 
     frame_h, frame_w = get_frame_size(frames[0])
@@ -109,6 +108,11 @@ async def render_spaceship(canvas, start_row, start_col, frames, max_speed=1):
         await sleep()
 
         draw_frame(canvas, row, col, frame, negative=True)
+
+        for obstacle in obstacles:
+            if obstacle.has_collision(row, col):
+                coroutines.append(show_gameover(canvas))
+                return
 
 
 async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
@@ -153,6 +157,23 @@ async def fill_orbit_with_garbage(canvas, garbage_frames):
         column = max(column, border_width)
         coroutines.append(fly_garbage(canvas, column, random.choice(garbage_frames)))
         await sleep(10)
+
+
+async def show_gameover(canvas):
+    with open('frames/game_over.txt', 'r') as file:
+        frame = file.read()
+
+    rows_number, columns_number = canvas.getmaxyx()
+    frame_h, frame_w = get_frame_size(frame)
+
+    center_row = int((rows_number - border_width - canvas_coord_offset) / 2 - frame_h / 2)
+    center_col = int((columns_number - border_width - canvas_coord_offset) / 2 - frame_w / 2)
+
+    while True:
+        draw_frame(canvas, center_row, center_col, frame)
+
+        await sleep()
+        draw_frame(canvas, center_row, center_col, frame, negative=True)
 
 
 def draw(canvas):
