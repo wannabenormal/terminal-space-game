@@ -5,6 +5,7 @@ import random
 from itertools import cycle
 
 from curses_tools import draw_frame, read_controls, get_frame_size
+from physics import update_speed
 
 
 async def sleep(tics=1):
@@ -62,7 +63,7 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
         column += columns_speed
 
 
-async def render_spaceship(canvas, start_row, start_col, frames, speed=1):
+async def render_spaceship(canvas, start_row, start_col, frames, max_speed=1):
     border_width = 1
     canvas_h, canvas_w = canvas.getmaxyx()
 
@@ -71,11 +72,22 @@ async def render_spaceship(canvas, start_row, start_col, frames, speed=1):
     row = start_row - int(frame_h / 2)
     col = start_col - int(frame_w / 2)
 
+    row_speed = column_speed = 0
+
     for frame in cycle(frames):
         row_direction, column_direction, _ = read_controls(canvas)
 
-        row = row + row_direction * speed
-        col = col + column_direction * speed
+        row_speed, column_speed = update_speed(
+            row_speed,
+            column_speed,
+            row_direction,
+            column_direction,
+            row_speed_limit=max_speed,
+            column_speed_limit=max_speed
+        )
+
+        row += row_speed
+        col += column_speed
 
         row = min(row, canvas_h - frame_h - border_width)
         col = min(col, canvas_w - frame_w - border_width)
