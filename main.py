@@ -8,6 +8,7 @@ from curses_tools import draw_frame, read_controls, get_frame_size
 from physics import update_speed
 from obstacles import Obstacle
 from explosions import explode
+from game_scenario import PHRASES, get_garbage_delay_tics
 
 
 async def sleep(tics=1):
@@ -101,7 +102,7 @@ async def render_spaceship(canvas, start_row, start_col, frames, max_speed=1):
         row = max(row, border_width)
         col = max(col, border_width)
 
-        if space_pressed:
+        if space_pressed and year >= 2020:
             coroutines.append(fire(canvas, row, col + int(frame_w / 2)))
 
         draw_frame(canvas, row, col, frame)
@@ -152,11 +153,14 @@ async def fill_orbit_with_garbage(canvas, garbage_frames):
     _, columns_number = canvas.getmaxyx()
 
     while True:
+        garbage_delay_tics = get_garbage_delay_tics(year)
         column = random.randint(0, columns_number)
         column = min(column, columns_number - border_width - canvas_coord_offset)
         column = max(column, border_width)
-        coroutines.append(fly_garbage(canvas, column, random.choice(garbage_frames)))
-        await sleep(10)
+
+        if garbage_delay_tics:
+            coroutines.append(fly_garbage(canvas, column, random.choice(garbage_frames)))
+        await sleep(garbage_delay_tics or 1)
 
 
 async def show_gameover(canvas):
@@ -174,6 +178,45 @@ async def show_gameover(canvas):
 
         await sleep()
         draw_frame(canvas, center_row, center_col, frame, negative=True)
+
+
+async def draw_year(canvas):
+    rows_number, _ = canvas.getmaxyx()
+    win_height = 6
+    win_width = 42
+
+    while True:
+        frame_h, frame_w = get_frame_size(str(year))
+
+        frame_row_pos = int(win_height / 2 - frame_h / 2)
+        frame_col_pos = int(win_width / 2 - frame_w / 2)
+
+        phrase = PHRASES.get(year)
+
+        win = canvas.derwin(
+            win_height,
+            win_width,
+            rows_number - border_width - win_height,
+            border_width
+        )
+        win.border()
+        draw_frame(win, frame_row_pos, frame_col_pos, str(year))
+
+        if phrase:
+            draw_frame(win, frame_row_pos + 1, 1, phrase)
+
+        await sleep()
+        draw_frame(win, frame_row_pos, frame_col_pos, str(year), negative=True)
+
+        if phrase:
+            draw_frame(win, frame_row_pos + 1, 1, phrase, negative=True)
+
+
+async def pass_years():
+    global year
+    while True:
+        await sleep(15)
+        year += 1
 
 
 def draw(canvas):
@@ -229,12 +272,13 @@ def draw(canvas):
         for row, column in list(set(stars_coordinates))
     ])
 
-    coroutines.append(
-        render_spaceship(canvas, int(canvas_h / 2), int(canvas_w / 2), rocket_frames)
-    )
-
-    coroutines.append(
-        fill_orbit_with_garbage(canvas, garbage_frames)
+    coroutines.extend(
+        [
+            render_spaceship(canvas, int(canvas_h / 2), int(canvas_w / 2), rocket_frames),
+            fill_orbit_with_garbage(canvas, garbage_frames),
+            draw_year(canvas),
+            pass_years()
+        ]
     )
 
     while True:
@@ -254,6 +298,7 @@ if __name__ == '__main__':
     obstacles_in_last_collisions = []
     border_width = 1
     canvas_coord_offset = 1
+    year = 1957
 
     curses.update_lines_cols()
     curses.wrapper(draw)
