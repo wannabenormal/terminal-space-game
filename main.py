@@ -7,6 +7,7 @@ from itertools import cycle
 from curses_tools import draw_frame, read_controls, get_frame_size
 from physics import update_speed
 from obstacles import Obstacle, show_obstacles
+from explosions import explode
 
 
 async def sleep(tics=1):
@@ -59,6 +60,7 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
     while 0 < row < max_row and 0 < column < max_column:
         for obstacle in obstacles:
             if obstacle.has_collision(row, column):
+                obstacles_in_last_collisions.append(obstacle)
                 return
 
         canvas.addstr(round(row), round(column), symbol)
@@ -119,16 +121,25 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
 
     row = 0
 
-
     while row < rows_number:
         try:
             obstacle = Obstacle(row, column, frame_h, frame_w)
             obstacles.append(obstacle)
 
+            frame_row_center_pos = int(row + frame_h / 2)
+            frame_col_center_pos = int(column + frame_w / 2)
+
             draw_frame(canvas, row, column, garbage_frame)
             await sleep()
             draw_frame(canvas, row, column, garbage_frame, negative=True)
             row += speed
+
+            if obstacle in obstacles_in_last_collisions:
+                obstacles_in_last_collisions.remove(obstacle)
+                coroutines.append(
+                    explode(canvas, frame_row_center_pos, frame_col_center_pos)
+                )
+                return
         finally:
             obstacles.remove(obstacle)
 
@@ -205,10 +216,6 @@ def draw(canvas):
         fill_orbit_with_garbage(canvas, garbage_frames)
     )
 
-    coroutines.append(
-        show_obstacles(canvas, obstacles)
-    )
-
     while True:
         for coroutine in coroutines.copy():
             try:
@@ -223,6 +230,7 @@ def draw(canvas):
 if __name__ == '__main__':
     coroutines = []
     obstacles = []
+    obstacles_in_last_collisions = []
     border_width = 1
     canvas_coord_offset = 1
 
