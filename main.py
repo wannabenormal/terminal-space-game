@@ -179,34 +179,34 @@ async def show_gameover(canvas, frame):
 
 async def draw_year(canvas):
     rows_number, _ = canvas.getmaxyx()
-    win_height = 6
-    win_width = 42
+    year_area_height = 6
+    year_area_width = 42
+
+    year_area = canvas.derwin(
+        year_area_height,
+        year_area_width,
+        rows_number - border_width - year_area_height,
+        border_width
+    )
 
     while True:
         frame_h, frame_w = get_frame_size(str(year))
 
-        frame_row_pos = int(win_height / 2 - frame_h / 2)
-        frame_col_pos = int(win_width / 2 - frame_w / 2)
+        frame_row_pos = int(year_area_height / 2 - frame_h / 2)
+        frame_col_pos = int(year_area_width / 2 - frame_w / 2)
 
         phrase = PHRASES.get(year)
-
-        win = canvas.derwin(
-            win_height,
-            win_width,
-            rows_number - border_width - win_height,
-            border_width
-        )
-        win.border()
-        draw_frame(win, frame_row_pos, frame_col_pos, str(year))
+        year_area.border()
+        draw_frame(year_area, frame_row_pos, frame_col_pos, str(year))
 
         if phrase:
-            draw_frame(win, frame_row_pos + 1, 1, phrase)
+            draw_frame(year_area, frame_row_pos + 1, 1, phrase)
 
         await sleep()
-        draw_frame(win, frame_row_pos, frame_col_pos, str(year), negative=True)
+        draw_frame(year_area, frame_row_pos, frame_col_pos, str(year), negative=True)
 
         if phrase:
-            draw_frame(win, frame_row_pos + 1, 1, phrase, negative=True)
+            draw_frame(year_area, frame_row_pos + 1, 1, phrase, negative=True)
 
 
 async def pass_years():
