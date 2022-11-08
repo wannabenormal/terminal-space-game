@@ -112,7 +112,7 @@ async def render_spaceship(canvas, start_row, start_col, frames, max_speed=1):
 
         for obstacle in obstacles:
             if obstacle.has_collision(row, col):
-                coroutines.append(show_gameover(canvas))
+                coroutines.append(show_gameover(canvas, gameover_frame))
                 return
 
 
@@ -163,10 +163,7 @@ async def fill_orbit_with_garbage(canvas, garbage_frames):
         await sleep(garbage_delay_tics or 1)
 
 
-async def show_gameover(canvas):
-    with open('frames/game_over.txt', 'r') as file:
-        frame = file.read()
-
+async def show_gameover(canvas, frame):
     rows_number, columns_number = canvas.getmaxyx()
     frame_h, frame_w = get_frame_size(frame)
 
@@ -299,6 +296,9 @@ if __name__ == '__main__':
     border_width = 1
     canvas_coord_offset = 1
     year = 1957
+
+    with open('frames/game_over.txt', 'r') as file:
+        gameover_frame = file.read()
 
     curses.update_lines_cols()
     curses.wrapper(draw)
